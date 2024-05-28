@@ -17,7 +17,7 @@ namespace LookDaysAPI.Controllers
             _context = context;
         }
 
-        // GET: api/<TestAPI>
+        // GET: api/<ActivityAPI>
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Activity>>> GetActivity()
         {
@@ -42,7 +42,7 @@ namespace LookDaysAPI.Controllers
             return Activity;
         }
 
-        // POST api/<TestAPI>
+        // POST api/<ActivityAPI>
         [HttpPost]
         public async Task<ActionResult<Activity>> PostActivity(Activity activity)
         {
@@ -56,7 +56,7 @@ namespace LookDaysAPI.Controllers
             return CreatedAtAction("GetActivity", new { id = activity.ActivityId }, activity);
         }
 
-        // PUT api/<TestAPI>/5
+        // PUT api/<ActivityAPI>/5
         [HttpPut("{id}")]
         public async Task<IActionResult> PutActivity(int id, Activity activity)
         {
@@ -81,7 +81,7 @@ namespace LookDaysAPI.Controllers
             return NoContent();
         }
 
-        // DELETE api/<TestAPI>/5
+        // DELETE api/<ActivityAPI>/5
         [HttpDelete("{id}")]
         public void Delete(int id)
         {
