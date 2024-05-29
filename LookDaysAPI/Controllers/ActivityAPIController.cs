@@ -28,7 +28,7 @@ namespace LookDaysAPI.Controllers
             return await _context.Activities.ToListAsync();
         }
 
-        // GET api/<TestAPI>/5
+        // GET api/<ActivityAPI>/5
         [HttpGet("{id}")]
         public async Task<ActionResult<Activity>> GetActivity(int id)
         {
