@@ -1,4 +1,5 @@
 ﻿using LookDaysAPI.Models;
+using LookDaysAPI.Models.DTO;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Identity.Client;
