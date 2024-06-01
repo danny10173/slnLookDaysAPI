@@ -57,6 +57,23 @@ namespace LookDaysAPI.Controllers
             return CreatedAtAction("GetActivity", new { id = activity.ActivityId }, activity);
         }
 
+        [HttpPost("AddActivity")]
+        public async Task<IActionResult> AddActivity(ActivityDTO activityDTO)
+        {
+            Activity activity = new Activity();
+            activity.Name = activityDTO.Name;
+            activity.Description = activityDTO.Description;
+            activity.Price = activityDTO.Price;
+            activity.Date = activityDTO.Date;
+            activity.CityId = activityDTO.CityId;
+            activity.Remaining = activityDTO.Remaining;
+            activity.HotelId = activityDTO.HotelId;
+
+            _context.Activities.Add(activity);
+            await _context.SaveChangesAsync();
+            return Ok(activity);
+        }
+
         // PUT api/<ActivityAPI>/5
         [HttpPut("{id}")]
         public async Task<IActionResult> PutActivity(int id, Activity activity)
