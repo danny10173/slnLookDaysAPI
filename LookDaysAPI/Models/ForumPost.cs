@@ -16,4 +16,6 @@ public partial class ForumPost
     public string? PostContent { get; set; }
 
     public int Participants { get; set; }
+
+    public virtual User User { get; set; } = null!;
 }
