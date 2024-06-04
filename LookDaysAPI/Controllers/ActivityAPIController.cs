@@ -69,8 +69,9 @@ namespace LookDaysAPI.Controllers
             activity.Remaining = activityDTO.Remaining;
             activity.HotelId = activityDTO.HotelId;
 
-            _context.Activities.Add(activity);
-            await _context.SaveChangesAsync();
+            LookdaysContext context = new LookdaysContext();
+            context.Activities.Add(activity);
+            await context.SaveChangesAsync();
             return Ok(activity);
         }
 

@@ -23,11 +23,5 @@ public partial class Booking
 
     public virtual Activity Activity { get; set; } = null!;
 
-    public virtual BookingState BookingStates { get; set; } = null!;
-
-    public virtual ActivitiesModel? Model { get; set; }
-
-    public virtual ICollection<Payment> Payments { get; set; } = new List<Payment>();
-
     public virtual User User { get; set; } = null!;
 }
