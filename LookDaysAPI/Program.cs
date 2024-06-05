@@ -1,5 +1,6 @@
-using LookDaysAPI.Models;
+﻿using LookDaysAPI.Models;
 using Microsoft.EntityFrameworkCore;
+using LookDaysAPI.Controllers;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -27,5 +28,7 @@ app.UseHttpsRedirection();
 app.UseAuthorization();
 
 app.MapControllers();
+
+app.MapForumPostEndpoints();
 
 app.Run();
