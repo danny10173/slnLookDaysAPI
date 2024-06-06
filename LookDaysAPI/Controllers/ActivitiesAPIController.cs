@@ -37,6 +37,8 @@ namespace LookDaysAPI.Controllers
         {
             var activity = await _context.Activities
                                         .Include(a => a.ActivitiesAlbums)
+                                        .Include(a => a.Reviews)
+                                            .ThenInclude(a => a.User)
                                         .FirstOrDefaultAsync(a => a.ActivityId == id);
 
             if (activity == null)
@@ -54,7 +56,14 @@ namespace LookDaysAPI.Controllers
                 activity.CityId,
                 activity.Remaining,
                 activity.HotelId,
-                photo = activity.ActivitiesAlbums.Select(album => album.Photo != null ? Convert.ToBase64String(album.Photo) : null).ToList()
+                photo = activity.ActivitiesAlbums.Select(album => album.Photo != null ? Convert.ToBase64String(album.Photo) : null).ToList(),
+                reviews = activity.Reviews.Select(r => new
+                {
+                    r.ReviewId,
+                    username = r.User.Username,
+                    r.Comment,
+                    r.Rating
+                }).ToList(),
             };
 
             return Ok(selectedActivity);
