@@ -39,6 +39,7 @@ namespace LookDaysAPI.Controllers
                                         .Include(a => a.ActivitiesAlbums)
                                         .Include(a => a.Reviews)
                                             .ThenInclude(a => a.User)
+     
                                         .FirstOrDefaultAsync(a => a.ActivityId == id);
 
             if (activity == null)
@@ -64,8 +65,8 @@ namespace LookDaysAPI.Controllers
                     r.Comment,
                     r.Rating
                 }).ToList(),
-            };
 
+            };
             return Ok(selectedActivity);
         }
 
