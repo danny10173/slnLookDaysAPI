@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using LookDaysAPI.Controllers;
 
 var builder = WebApplication.CreateBuilder(args);
-// ²K¥[ CORS °t¸m
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowSpecificOrigin",
