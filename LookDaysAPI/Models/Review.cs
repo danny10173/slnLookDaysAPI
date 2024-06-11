@@ -13,7 +13,7 @@ public partial class Review
 
     public string Comment { get; set; } = null!;
 
-    public string? Rating { get; set; }
+    public double? Rating { get; set; }
 
     public virtual Activity Activity { get; set; } = null!;
 

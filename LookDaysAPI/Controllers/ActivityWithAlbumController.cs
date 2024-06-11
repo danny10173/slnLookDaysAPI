@@ -19,7 +19,6 @@ namespace LookDaysAPI.Controllers
         {
             try
             {
-                var random = new Random();
 
                 // 記錄進入方法
                 Console.WriteLine("Entering GetActivities method.");
