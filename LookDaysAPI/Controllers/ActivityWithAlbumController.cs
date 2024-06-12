@@ -31,7 +31,8 @@ namespace LookDaysAPI.Controllers
                 }
 
                 var joinedActivities = _context.Activities
-                 .Include(a => a.ActivitiesAlbums) // 加載相關的 ActivitiesAlbums
+                 .Include(a => a.ActivitiesAlbums)
+                 .Include(a => a.Reviews)// 加載相關的 ActivitiesAlbums
                                                    //.Join(
                                                    //    _context.ActivitiesAlbums, // 第二個序列
                                                    //    a => a.ActivityId,         // 第一個序列的關聯鍵
@@ -59,6 +60,7 @@ namespace LookDaysAPI.Controllers
                         a.CityId,
                         a.Remaining,
                         a.HotelId,
+                        rating = a.Reviews.Any() ? Math.Round(a.Reviews.Average(r => (double)r.Rating), 1) : 0, // 計算並四捨五入平均Rating
                         photo = a.ActivitiesAlbums.Select(album => album.Photo != null ? Convert.ToBase64String(album.Photo) : null).ToList()
                     })
                     .ToList();
