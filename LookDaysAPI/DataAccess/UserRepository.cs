@@ -60,24 +60,24 @@ namespace LookDaysAPI.DataAccess
             return foundUser;
         }
 
-        //public async Task<User?> AuthUser(LoginDTO signup)
-        //{
-        //    if (!SignInPropsValidation(signup)) return null;
+        public async Task<User?> AuthUser(LoginDTO signup)
+        {
+            if (!SignInPropsValidation(signup)) return null;
 
-        //    Member? foundMember = await _context.Members.FirstOrDefaultAsync(m => m.Username == signup.username);
+            User? foundUser = await _context.Users.FirstOrDefaultAsync(m => m.Username == signup.Username);
 
-        //    if (foundMember != null)
-        //    {
-        //        if (Hash.VerifyHashedPassword(signup.password, foundMember.Password!))
-        //        {
-        //            return foundMember;
-        //        }
+            if (foundUser != null)
+            {
+                if (signup.Password == foundUser.Password!)
+                {
+                    return foundUser;
+                }
 
-        //        return null;
-        //    }
+                return null;
+            }
 
-        //    return null;
-        //}
+            return null;
+        }
 
         private string SignUpValidation(LoginDTO user)
         {
