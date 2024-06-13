@@ -2,10 +2,11 @@
 using LookDaysAPI.Models;
 using LookDaysAPI.Models.DTO;
 using LookDaysAPI.Models.Service;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Formats.Asn1;
-
-// For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+using Microsoft.IdentityModel.JsonWebTokens;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 
 namespace LookDaysAPI.Controllers
 {
@@ -24,21 +25,22 @@ namespace LookDaysAPI.Controllers
             _userRepository = new UserRepository(_context);
         }
 
-        // GET: api/<LoginJWTController>
-        [HttpGet]
-        public IEnumerable<string> Get()
+        [HttpPost("sign-up")]
+        public async Task<IActionResult> SignUp(LoginDTO signup)
         {
-            return new string[] { "value1", "value2" };
+            try
+            {
+                string res = await _userRepository.AddNewUser(signup);
+
+                if (res == "註冊成功") return Ok(res);
+                else return BadRequest(res);
+            }
+            catch (Exception)
+            {
+                return BadRequest("伺服器錯誤，請稍後再試");
+            }
         }
 
-        // GET api/<LoginJWTController>/5
-        [HttpGet("{id}")]
-        public string Get(int id)
-        {
-            return "value";
-        }
-
-        //POST api/<LoginJWTController>
         [HttpPost("Log-in")]
         public async Task<ActionResult> Login(LoginDTO loginUser)
         {
@@ -61,6 +63,63 @@ namespace LookDaysAPI.Controllers
             {
                 return BadRequest("server error");
             }
+        }
+        [HttpGet("get-current-user"), Authorize(Roles = "user")]
+        public async Task<IActionResult> getCurrentUser()
+        {
+            try
+            {
+                string? jwt = HttpContext.Request.Headers["Authorization"];
+
+                if (jwt == null || jwt == "") return BadRequest();
+
+                string username = decodeJWT(jwt);
+
+                if (username == null)
+                {
+                    return BadRequest();
+                }
+
+                User? user = await _userRepository.GetUserbyUsername(username);
+
+                if (user == null)
+                {
+                    return NotFound("使用者不存在");
+                }
+
+                CurrentUserDTO currentUser = new CurrentUserDTO
+                {
+                    Id = user.UserId,
+                    Username = user.Username,
+                    Email = user.Email ?? string.Empty
+                };
+
+                return Ok(currentUser);
+            }
+            catch (Exception)
+            {
+                return BadRequest("伺服器錯誤，請稍後再試");
+            }
+        }
+        private string decodeJWT(string jwt)
+        {
+            jwt = jwt.Replace("Bearer ", "");
+            JwtSecurityTokenHandler tokenHandler = new JwtSecurityTokenHandler();
+            JwtSecurityToken decodedToken = tokenHandler.ReadJwtToken(jwt);
+            string? username = decodedToken.Claims.FirstOrDefault(claim => claim.Type == ClaimTypes.Name)?.Value;
+
+            return username!;
+        }
+        private string decodeJwtId(string jwt)
+        {
+            jwt = jwt.Replace("Bearer ", "");
+
+            JwtSecurityTokenHandler tokenHandler = new JwtSecurityTokenHandler();
+            JwtSecurityToken decodedToken = tokenHandler.ReadJwtToken(jwt);
+
+            string? id = decodedToken.Claims.FirstOrDefault(claim => claim.Type == ClaimTypes.NameIdentifier)?.Value;
+
+            return id!;
         }
     }
 }
