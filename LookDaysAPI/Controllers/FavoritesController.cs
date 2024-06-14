@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using LookDaysAPI.Models;
+using LookDaysAPI.Models.DTO;
 
 namespace LookDaysAPI.Controllers
 {
@@ -19,7 +20,58 @@ namespace LookDaysAPI.Controllers
         {
             _context = context;
         }
+        [HttpPost]
+        public async Task<IActionResult> AddBooking([FromBody] BookingDTO bookingDTO)
+        {
+            if (bookingDTO == null)
+            {
+                return BadRequest();
+            }
 
+            // 檢查是否已經存在收藏記錄
+            var existingBooking = await _context.Bookings
+                .FirstOrDefaultAsync(b => b.UserId == bookingDTO.UserId && b.ActivityId == bookingDTO.ActivityId && b.BookingStatesId == 2);
+
+            if (existingBooking != null)
+            {
+                return Conflict("Already in favorites");
+            }
+
+            var booking = new Booking
+            {
+                UserId = 2, //寫死
+                ActivityId = bookingDTO.ActivityId,
+                BookingDate = bookingDTO.BookingDate,
+                Price = bookingDTO.Price,
+                BookingStatesId = 2
+            };
+
+            _context.Bookings.Add(booking);
+            await _context.SaveChangesAsync();
+
+            return Ok();
+        }
+        [HttpDelete]
+        public async Task<IActionResult> DeleteBooking([FromQuery] int userId, [FromQuery] int activityId)
+        {
+            if (_context.Bookings == null)
+            {
+                return NotFound();
+            }
+
+            var booking = await _context.Bookings
+                .FirstOrDefaultAsync(b => b.UserId == userId && b.ActivityId == activityId && b.BookingStatesId == 2);
+
+            if (booking == null)
+            {
+                return NotFound("The item is not in favorites.");
+            }
+
+            _context.Bookings.Remove(booking);
+            await _context.SaveChangesAsync();
+
+            return NoContent();
+        }
         // GET: api/Favorites
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Booking>>> GetBookings()
@@ -92,18 +144,10 @@ namespace LookDaysAPI.Controllers
 
         // POST: api/Favorites
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPost]
-        public async Task<ActionResult<Booking>> PostBooking(Booking booking)
-        {
-          if (_context.Bookings == null)
-          {
-              return Problem("Entity set 'LookdaysContext.Bookings'  is null.");
-          }
-            _context.Bookings.Add(booking);
-            await _context.SaveChangesAsync();
-
-            return CreatedAtAction("GetBooking", new { id = booking.BookingId }, booking);
-        }
+        // POST: api/Bookings
+        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        // POST: api/Bookings
+        
 
         // DELETE: api/Favorites/5
         [HttpDelete("{id}")]
