@@ -9,6 +9,7 @@ using LookDaysAPI.DataAccess;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using LookDaysAPI.Models.DTO;
+using System.Diagnostics;
 
 namespace LookDaysAPI.Controllers
 {
@@ -85,6 +86,44 @@ namespace LookDaysAPI.Controllers
             catch (Exception)
             {
                 return BadRequest("伺服器錯誤，請稍後再試");
+            }
+        }
+
+        [HttpPost("PostByUser"),Authorize(Roles = "user")]
+        public async Task<IActionResult> PostByUser(AddNewPostDTO addNewPostDTO)
+        {
+            try
+            {
+                string? jwt = HttpContext.Request.Headers["Authorization"];
+                if (jwt == null || jwt == "") return BadRequest();
+                string username = decodeJWT(jwt);
+
+                if (username == null)
+                {
+                    return BadRequest();
+                }
+
+                User? user = await _userRepository.GetUserbyUsername(username);
+
+                if (user == null)
+                {
+                    return NotFound("使用者不存在");
+                }
+
+                ForumPost forumPost = new ForumPost()
+                {
+                    PostTitle = addNewPostDTO.PostTitle,
+                    UserId = user.UserId,
+                    PostTime = addNewPostDTO.PostTime,
+                    PostContent = addNewPostDTO.PostContent
+                };
+                _context.ForumPosts.Add(forumPost);
+                await _context.SaveChangesAsync();
+                return Ok(forumPost);
+            }
+            catch(Exception)
+            {
+                return BadRequest();
             }
         }
     }
