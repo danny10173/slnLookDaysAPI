@@ -70,17 +70,6 @@ namespace LookDaysAPI.Controllers
                          Participants = fp.Participants
                      }
                     ).ToListAsync();
-                //if (findpost == null) return NotFound();
-                //var post = new ForumPostDTO()
-                //{
-                //    PostId = findpost.PostId,
-                //    PostTitle = findpost.PostTitle,
-                //    PostTime = findpost.PostTime,
-                //    UserId = findpost.UserId,
-                //    Username = findpost.User.Username,
-                //    PostContent = findpost.PostContent,
-                //    Participants = findpost.Participants
-                //};
                 return Ok(findpost);
             }
             catch (Exception)
