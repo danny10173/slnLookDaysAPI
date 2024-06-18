@@ -57,7 +57,11 @@ namespace LookDaysAPI.Controllers
                 activity.CityId,
                 activity.Remaining,
                 activity.HotelId,
+
                 photo = activity.ActivitiesAlbums.Select(album => album.Photo != null ? Convert.ToBase64String(album.Photo) : null).ToList(),
+                photoDesc = activity.ActivitiesAlbums
+                            .Select(album => album.PhotoDesc)
+                            .ToList(),
                 reviews = activity.Reviews.Select(r => new
                 {
                     r.ReviewId,
@@ -141,5 +145,27 @@ namespace LookDaysAPI.Controllers
         {
             return (_context.Activities?.Any(e => e.ActivityId == id)).GetValueOrDefault();
         }
+
+        // GET: api/ActivitiesAPI/ModelTags
+        [HttpGet("ModelTags")]
+        public async Task<ActionResult<IEnumerable<ModelTag>>> GetModelTags()
+        {
+            try
+            {
+                var modelTags = await _context.ModelTags.ToListAsync();
+                if (modelTags == null || modelTags.Count == 0)
+                {
+                    return NotFound("No model tags found.");
+                }
+
+                return Ok(modelTags);
+            }
+            catch (Exception ex)
+            {
+                return Problem($"Error retrieving model tags: {ex.Message}");
+            }
+        }
+
     }
+
 }
