@@ -17,7 +17,9 @@ public partial class User
 
     public int RoleId { get; set; }
 
-    public string? UserPic { get; set; }
+    public byte[]? UserPic { get; set; }
+
+    public string? fPhone { get; set; }
 
     public virtual ICollection<ActionJoint> ActionJoints { get; set; } = new List<ActionJoint>();
 
