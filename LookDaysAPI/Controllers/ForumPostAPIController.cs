@@ -104,9 +104,10 @@ namespace LookDaysAPI.Controllers
                     PostTitle = addNewPostDTO.PostTitle,
                     UserId = user.UserId,
                     PostTime = addNewPostDTO.PostTime,
-                    PostContent = addNewPostDTO.PostContent
+                    PostContent = addNewPostDTO.PostContent,
+                    Participants = 0
                 };
-                _context.ForumPosts.Add(forumPost);
+                await _context.ForumPosts.AddAsync(forumPost);
                 await _context.SaveChangesAsync();
                 return Ok(forumPost);
             }
