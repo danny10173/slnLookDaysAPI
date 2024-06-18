@@ -4,7 +4,9 @@ using LookDaysAPI.Models.DTO;
 using LookDaysAPI.Models.Service;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Identity.Client;
 using Microsoft.IdentityModel.JsonWebTokens;
+using NuGet.Protocol;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 
@@ -40,6 +42,10 @@ namespace LookDaysAPI.Controllers
                 return BadRequest("伺服器錯誤，請稍後再試");
             }
         }
+        public class JWT
+        {
+            public string token { get; set; } = string.Empty;
+        }
 
         [HttpPost("Log-in")]
         public async Task<ActionResult> Login(LoginDTO loginUser)
@@ -51,7 +57,11 @@ namespace LookDaysAPI.Controllers
                 if (user != null)
                 {
                     var token = (new JwtGenerator(_configuration)).GenerateJwtToken(loginUser.Username, "user", user.UserId);
-                    string JWT = "Bearer " + token;
+                    //string JWT = "token " + token;
+                    var JWT = new JWT 
+                    {
+                        token = "Bearer "+ token
+                    };
                     return Ok(JWT);
                 }
                 else
