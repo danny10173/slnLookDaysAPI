@@ -57,7 +57,11 @@ namespace LookDaysAPI.Controllers
                 activity.CityId,
                 activity.Remaining,
                 activity.HotelId,
+
                 photo = activity.ActivitiesAlbums.Select(album => album.Photo != null ? Convert.ToBase64String(album.Photo) : null).ToList(),
+                photoDesc = activity.ActivitiesAlbums
+                            .Select(album => album.PhotoDesc)
+                            .ToList(),
                 reviews = activity.Reviews.Select(r => new
                 {
                     r.ReviewId,
@@ -141,5 +145,55 @@ namespace LookDaysAPI.Controllers
         {
             return (_context.Activities?.Any(e => e.ActivityId == id)).GetValueOrDefault();
         }
+
+        // GET: api/ActivitiesAPI/ModelTags
+        [HttpGet("ModelTags")]
+        public async Task<ActionResult<IEnumerable<ModelTag>>> GetModelTags()
+        {
+            try
+            {
+                var modelTags = await _context.ModelTags.ToListAsync();
+                if (modelTags == null || modelTags.Count == 0)
+                {
+                    return NotFound("No model tags found.");
+                }
+
+                return Ok(modelTags);
+            }
+            catch (Exception ex)
+            {
+                return Problem($"Error retrieving model tags: {ex.Message}");
+            }
+        }
+        [HttpGet("{id}/ActivitiesModels")]
+        public async Task<ActionResult<IEnumerable<ActivitiesModel>>> GetActivitiesModelsForActivity(int id)
+        {
+            try
+            {
+                var activitiesModels = await _context.ActivitiesModels
+                    .Where(am => am.ActivityId == id)
+                    .Select(am => new ActivitiesModel
+                    {
+                        ActivityId = am.ActivityId,
+                        ModelName = am.ModelName,
+                        ModelPrice = am.ModelPrice,
+                        ModelContent = am.ModelContent
+                    })
+                    .ToListAsync();
+
+                if (activitiesModels == null || activitiesModels.Count == 0)
+                {
+                    return NotFound($"No activities models found for activity with id {id}.");
+                }
+
+                return Ok(activitiesModels);
+            }
+            catch (Exception ex)
+            {
+                return Problem($"Error retrieving activities models: {ex.Message}");
+            }
+        }
     }
+
+
 }

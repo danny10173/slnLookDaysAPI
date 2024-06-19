@@ -31,6 +31,10 @@ public partial class Activity
     [Column("HotelID")]
     public int? HotelId { get; set; }
 
+    public double? Latitude { get; set; }
+
+    public double? Longitude { get; set; }
+
     [InverseProperty("Activity")]
     public virtual ICollection<ActionJoint> ActionJoints { get; set; } = new List<ActionJoint>();
 

@@ -134,5 +134,35 @@ public class HotActivitiesController : ControllerBase
             return StatusCode(500, $"Internal server error: {ex.Message}");
         }
     }
+    [HttpGet("car-activities")]
+    public IActionResult GetCarActivities()
+    {
+        try
+        {
+            var carActivities = _context.Activities
+                .Select(a => new
+                {
+                    a.ActivityId,
+                    a.Name,
+                    a.Price,
+                    a.Description,
+                    a.Date,
+                    CityName = a.City.CityName,
+                    a.Remaining,
+                    a.HotelId,
+                    a.Latitude,
+                    a.Longitude,
+                    Albums = a.ActivitiesAlbums.Select(album => album.Photo != null ? Convert.ToBase64String(album.Photo) : null).ToList()
+                })
+                .ToList();
+
+            return Ok(carActivities);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error in GetCarActivities method: {ex.Message}");
+            return StatusCode(500, $"Internal server error: {ex.Message}");
+        }
+    }
 
 }
