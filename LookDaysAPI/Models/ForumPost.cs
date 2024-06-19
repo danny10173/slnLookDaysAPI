@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace LookDaysAPI.Models;
+﻿namespace LookDaysAPI.Models;
 
 public partial class ForumPost
 {

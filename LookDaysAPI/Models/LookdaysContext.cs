@@ -273,7 +273,7 @@ public partial class LookdaysContext : DbContext
             entity.ToTable("ForumPost");
 
             entity.Property(e => e.PostId)
-                .ValueGeneratedNever()
+            //    .ValueGeneratedNever()  //屌你老母，操
                 .HasColumnName("PostID");
             entity.Property(e => e.PostContent)
                 .HasMaxLength(5000)

@@ -10,6 +10,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using LookDaysAPI.Models.DTO;
 using System.Diagnostics;
+using NuGet.Protocol;
 
 namespace LookDaysAPI.Controllers
 {
@@ -62,7 +63,7 @@ namespace LookDaysAPI.Controllers
                      fp => new ForumPostDTO()
                      {
                          UserId = fp.UserId,
-                         Username = fp.User.Username,
+                      //   Username = fp.User.Username,
                          PostId = fp.PostId,
                          PostTitle = fp.PostTitle,
                          PostTime = fp.PostTime,
@@ -99,21 +100,22 @@ namespace LookDaysAPI.Controllers
                     return NotFound("使用者不存在");
                 }
 
-                ForumPost forumPost = new ForumPost()
+                addNewPostDTO.UserId = user.UserId;
+                ForumPost forumPost = new ForumPost
                 {
                     PostTitle = addNewPostDTO.PostTitle,
-                    UserId = user.UserId,
                     PostTime = addNewPostDTO.PostTime,
+                    UserId = addNewPostDTO.UserId,
                     PostContent = addNewPostDTO.PostContent,
                     Participants = 0
                 };
-                await _context.ForumPosts.AddAsync(forumPost);
+                _context.ForumPosts.Add(forumPost);
                 await _context.SaveChangesAsync();
                 return Ok(forumPost);
             }
-            catch(Exception)
+            catch(Exception ex)
             {
-                return BadRequest();
+                return BadRequest(ex);
             }
         }
     }
