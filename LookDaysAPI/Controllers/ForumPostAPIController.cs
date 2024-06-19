@@ -58,12 +58,12 @@ namespace LookDaysAPI.Controllers
                 }
 
                 //var post = await _context.ForumPosts.FindAsync(user.UserId);
-                var findpost = await _context.ForumPosts.Where(a => a.UserId == 10)
+                var findpost = await _context.ForumPosts.Where(a => a.UserId == user.UserId)
                     .Select(
                      fp => new ForumPostDTO()
                      {
                          UserId = fp.UserId,
-                      //   Username = fp.User.Username,
+                         Username = user.Username,
                          PostId = fp.PostId,
                          PostTitle = fp.PostTitle,
                          PostTime = fp.PostTime,
@@ -105,13 +105,13 @@ namespace LookDaysAPI.Controllers
                 {
                     PostTitle = addNewPostDTO.PostTitle,
                     PostTime = addNewPostDTO.PostTime,
-                    UserId = addNewPostDTO.UserId,
+                    UserId =user.UserId,
                     PostContent = addNewPostDTO.PostContent,
                     Participants = 0
                 };
-                _context.ForumPosts.Add(forumPost);
+                await _context.ForumPosts.AddAsync(forumPost);
                 await _context.SaveChangesAsync();
-                return Ok(forumPost);
+                return Ok(addNewPostDTO);
             }
             catch(Exception ex)
             {

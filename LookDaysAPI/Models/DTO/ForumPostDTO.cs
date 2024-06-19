@@ -14,6 +14,6 @@
 
         public string? PostContent { get; set; }
 
-        public int Participants { get; set; }
+        public int? Participants { get; set; }
     }
 }
