@@ -1,4 +1,6 @@
-﻿namespace LookDaysAPI.Models;
+﻿using Newtonsoft.Json;
+
+namespace LookDaysAPI.Models;
 
 public partial class ForumPost
 {
@@ -14,5 +16,6 @@ public partial class ForumPost
 
     public int Participants { get; set; }
 
+    [JsonIgnore]
     public virtual User User { get; set; } = null!;
 }
