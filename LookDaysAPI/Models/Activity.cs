@@ -16,6 +16,7 @@ public partial class Activity
     public string Name { get; set; } = null!;
 
     public string? Description { get; set; }
+    public string? Address { get; set; }
 
     [Column(TypeName = "money")]
     public decimal? Price { get; set; }

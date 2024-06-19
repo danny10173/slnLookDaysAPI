@@ -57,6 +57,7 @@ namespace LookDaysAPI.Controllers
                 activity.CityId,
                 activity.Remaining,
                 activity.HotelId,
+                activity.Address,
 
                 photo = activity.ActivitiesAlbums.Select(album => album.Photo != null ? Convert.ToBase64String(album.Photo) : null).ToList(),
                 photoDesc = activity.ActivitiesAlbums
@@ -174,6 +175,7 @@ namespace LookDaysAPI.Controllers
                     .Where(am => am.ActivityId == id)
                     .Select(am => new ActivitiesModel
                     {
+                        ModelId = am.ModelId,
                         ActivityId = am.ActivityId,
                         ModelName = am.ModelName,
                         ModelPrice = am.ModelPrice,
