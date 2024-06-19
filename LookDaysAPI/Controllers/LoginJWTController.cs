@@ -39,7 +39,7 @@ namespace LookDaysAPI.Controllers
             }
             catch (Exception)
             {
-                return BadRequest("伺服器錯誤，請稍後再試");
+                return BadRequest("Server error. Please try again later.");
             }
         }
         public class JWT

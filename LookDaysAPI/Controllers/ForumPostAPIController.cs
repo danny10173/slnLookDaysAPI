@@ -10,6 +10,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using LookDaysAPI.Models.DTO;
 using System.Diagnostics;
+using NuGet.Protocol;
 
 namespace LookDaysAPI.Controllers
 {
@@ -57,12 +58,12 @@ namespace LookDaysAPI.Controllers
                 }
 
                 //var post = await _context.ForumPosts.FindAsync(user.UserId);
-                var findpost = await _context.ForumPosts.Where(a => a.UserId == 10)
+                var findpost = await _context.ForumPosts.Where(a => a.UserId == user.UserId)
                     .Select(
                      fp => new ForumPostDTO()
                      {
                          UserId = fp.UserId,
-                         Username = fp.User.Username,
+                         Username = user.Username,
                          PostId = fp.PostId,
                          PostTitle = fp.PostTitle,
                          PostTime = fp.PostTime,
@@ -99,20 +100,22 @@ namespace LookDaysAPI.Controllers
                     return NotFound("使用者不存在");
                 }
 
-                ForumPost forumPost = new ForumPost()
+                addNewPostDTO.UserId = user.UserId;
+                ForumPost forumPost = new ForumPost
                 {
                     PostTitle = addNewPostDTO.PostTitle,
-                    UserId = user.UserId,
                     PostTime = addNewPostDTO.PostTime,
-                    PostContent = addNewPostDTO.PostContent
+                    UserId =user.UserId,
+                    PostContent = addNewPostDTO.PostContent,
+                    Participants = 0
                 };
-                _context.ForumPosts.Add(forumPost);
+                await _context.ForumPosts.AddAsync(forumPost);
                 await _context.SaveChangesAsync();
-                return Ok(forumPost);
+                return Ok(addNewPostDTO);
             }
-            catch(Exception)
+            catch(Exception ex)
             {
-                return BadRequest();
+                return BadRequest(ex);
             }
         }
     }
