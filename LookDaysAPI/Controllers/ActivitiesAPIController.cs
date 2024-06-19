@@ -165,7 +165,35 @@ namespace LookDaysAPI.Controllers
                 return Problem($"Error retrieving model tags: {ex.Message}");
             }
         }
+        [HttpGet("{id}/ActivitiesModels")]
+        public async Task<ActionResult<IEnumerable<ActivitiesModel>>> GetActivitiesModelsForActivity(int id)
+        {
+            try
+            {
+                var activitiesModels = await _context.ActivitiesModels
+                    .Where(am => am.ActivityId == id)
+                    .Select(am => new ActivitiesModel
+                    {
+                        ActivityId = am.ActivityId,
+                        ModelName = am.ModelName,
+                        ModelPrice = am.ModelPrice,
+                        ModelContent = am.ModelContent
+                    })
+                    .ToListAsync();
 
+                if (activitiesModels == null || activitiesModels.Count == 0)
+                {
+                    return NotFound($"No activities models found for activity with id {id}.");
+                }
+
+                return Ok(activitiesModels);
+            }
+            catch (Exception ex)
+            {
+                return Problem($"Error retrieving activities models: {ex.Message}");
+            }
+        }
     }
+
 
 }
