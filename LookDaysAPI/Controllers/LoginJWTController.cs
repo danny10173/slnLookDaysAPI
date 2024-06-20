@@ -28,7 +28,7 @@ namespace LookDaysAPI.Controllers
         }
 
         [HttpPost("sign-up")]
-        public async Task<IActionResult> SignUp(LoginDTO signup)
+        public async Task<IActionResult> SignUp(SignupDTO signup)
         {
             try
             {
@@ -53,7 +53,7 @@ namespace LookDaysAPI.Controllers
             try
             {
                 User? user = await _userRepository.AuthUser(loginUser);
-                if (user == null) return BadRequest("Wrong Username or Password");
+                if (user == null) return BadRequest("使用者名稱或密碼錯誤");
                 if (user != null)
                 {
                     var token = (new JwtGenerator(_configuration)).GenerateJwtToken(loginUser.Username, "user", user.UserId);
@@ -66,7 +66,7 @@ namespace LookDaysAPI.Controllers
                 }
                 else
                 {
-                    return BadRequest("Wrong Username or Password");
+                    return BadRequest("使用者名稱或密碼錯誤");
                 }
             }
             catch (Exception)
@@ -74,6 +74,35 @@ namespace LookDaysAPI.Controllers
                 return BadRequest("server error");
             }
         }
+
+        [HttpPost("Log-in-hash")]
+        public async Task<ActionResult> LoginWithHashPassword(LoginDTO loginUser)
+        {
+            try
+            {
+                User? user = await _userRepository.AuthHashUser(loginUser);
+                if (user == null) return BadRequest("使用者名稱或密碼錯誤");
+                if (user != null)
+                {
+                    var token = (new JwtGenerator(_configuration)).GenerateJwtToken(loginUser.Username, "user", user.UserId);
+                    //string JWT = "token " + token;
+                    var JWT = new JWT
+                    {
+                        token = "Bearer " + token
+                    };
+                    return Ok(JWT);
+                }
+                else
+                {
+                    return BadRequest("使用者名稱或密碼錯誤");
+                }
+            }
+            catch (Exception)
+            {
+                return BadRequest("server error");
+            }
+        }
+
         [HttpGet("get-current-user"), Authorize(Roles = "user")]
         public async Task<IActionResult> getCurrentUser()
         {

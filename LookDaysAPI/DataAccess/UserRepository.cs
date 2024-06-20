@@ -1,8 +1,9 @@
 ﻿using LookDaysAPI.Models;
 using LookDaysAPI.Models.DTO;
 using Microsoft.EntityFrameworkCore;
-using System.Security.Policy;
+//using System.Security.Policy;
 using System.Text.RegularExpressions;
+using LookDaysAPI.Models.Service;
 
 namespace LookDaysAPI.DataAccess
 {
@@ -14,12 +15,14 @@ namespace LookDaysAPI.DataAccess
             this. _context = context;
         }
 
-        public async Task<string> AddNewUser(LoginDTO signup)
+        public async Task<string> AddNewUser(SignupDTO signup)
         {
             string validationRes = SignUpValidation(signup);
             if (validationRes != string.Empty) { return "註冊資料格式錯誤"; }
             bool isUserExist = _context.Users.Any(m => m.Username == signup.Username);
+            if (isUserExist) return ("使用者名稱已經被註冊");
             bool isEmailExist = _context.Users.Any(m => m.Email == signup.Email);
+            if (isEmailExist) return ("Email已經被使用");
 
             if (!isUserExist && !isEmailExist)
             {
@@ -27,7 +30,8 @@ namespace LookDaysAPI.DataAccess
                 {
                     Username = signup.Username,
                     Email = signup.Email,
-                    Password = signup.Password
+                    Password = Hash.HashPassword(signup.Password),
+                    RoleId = 1
                 };
 
                 _context.Users.Add(user);
@@ -60,15 +64,15 @@ namespace LookDaysAPI.DataAccess
             return foundUser;
         }
 
-        public async Task<User?> AuthUser(LoginDTO signup)
+        public async Task<User?> AuthUser(LoginDTO loginInfo)
         {
-            if (!SignInPropsValidation(signup)) return null;
+            if (!SignInPropsValidation(loginInfo)) return null;
 
-            User? foundUser = await _context.Users.FirstOrDefaultAsync(m => m.Username == signup.Username);
+            User? foundUser = await _context.Users.FirstOrDefaultAsync(m => m.Username == loginInfo.Username);
 
             if (foundUser != null)
             {
-                if (signup.Password == foundUser.Password!)
+                if (loginInfo.Password == foundUser.Password!)
                 {
                     return foundUser;
                 }
@@ -79,11 +83,30 @@ namespace LookDaysAPI.DataAccess
             return null;
         }
 
-        private string SignUpValidation(LoginDTO user)
+        public async Task<User?> AuthHashUser(LoginDTO loginInfo)
         {
-            if (user.Username.Length < 8 || user.Username.Length > 24)
+            if (!SignInPropsValidation(loginInfo)) return null;
+
+            User? foundUser = await _context.Users.FirstOrDefaultAsync(m => m.Username == loginInfo.Username);
+
+            if (foundUser != null)
             {
-                return "帳號長度必須在8至24之間";
+                if (Hash.HashPassword(loginInfo.Password) == foundUser.Password!)
+                {
+                    return foundUser;
+                }
+
+                return null;
+            }
+
+            return null;
+        }
+
+        private string SignUpValidation(SignupDTO user)
+        {
+            if (user.Username.Length < 7 || user.Username.Length > 24)
+            {
+                return "帳號長度必須在7至24之間";
             }
 
             if (!IsValidEmail(user.Email))
@@ -91,9 +114,9 @@ namespace LookDaysAPI.DataAccess
                 return "請輸入正確的Email格式";
             }
 
-            if (user.Password.Length < 8 || user.Password.Length > 24)
+            if (user.Password.Length < 4 || user.Password.Length > 24)
             {
-                return "密碼長度必須在8至24之間";
+                return "密碼長度必須在7至24之間";
             }
 
             if (!IsValidPassword(user.Password))
@@ -112,12 +135,12 @@ namespace LookDaysAPI.DataAccess
         }
         public bool IsValidPassword(string password)
         {
-            string pattern = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)[A-Za-z\\d]+$";
+            string pattern = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)[A-Za-z\\d]+$";    //"^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)[A-Za-z\\d]+$"
             return Regex.IsMatch(password, pattern);
         }
-        private bool SignInPropsValidation(LoginDTO signup)
+        private bool SignInPropsValidation(LoginDTO login)
         {
-            return !string.IsNullOrEmpty(signup.Username) && !string.IsNullOrEmpty(signup.Password);
+            return !string.IsNullOrEmpty(login.Username) && !string.IsNullOrEmpty(login.Password);
         }
     }
 }

@@ -22,6 +22,9 @@ public partial class ActivitiesAlbum
     [Column("ActivityID")]
     public int ActivityId { get; set; }
 
+    [Column(TypeName = "string")]
+    public string? PhotoDesc { get; set; }
+
     [ForeignKey("ActivityId")]
     [InverseProperty("ActivitiesAlbums")]
     public virtual Activity Activity { get; set; } = null!;
