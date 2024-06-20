@@ -110,7 +110,6 @@ public class ActivitiesController : ControllerBase
              .Take(10) // 取前10個活動
              .ToList();
 
-
             // 返回最受歡迎的活動資料
             return Ok(topBookedActivities);
         }
