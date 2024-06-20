@@ -9,6 +9,9 @@ namespace ReactApp1.Server.Models
         public decimal Price { get; set; }
         public string ActivityName { get; set; }
 
+        public int BookingStatesId { get; set; }
+
+        public int ActivityId { get; set; }
         public string ActivityDescription { get; set; }
     }
 }
