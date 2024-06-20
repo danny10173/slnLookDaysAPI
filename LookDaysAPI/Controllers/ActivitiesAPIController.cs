@@ -38,8 +38,7 @@ namespace LookDaysAPI.Controllers
             var activity = await _context.Activities
                                         .Include(a => a.ActivitiesAlbums)
                                         .Include(a => a.Reviews)
-                                            .ThenInclude(a => a.User)
-     
+                                        .ThenInclude(a => a.User)
                                         .FirstOrDefaultAsync(a => a.ActivityId == id);
 
             if (activity == null)
