@@ -61,9 +61,11 @@ namespace ReactApp1.Server.Controllers
 
             var bookingHisDTOs = bookings.Select(b => new BookingHistoryDTO
             {
-                BookingId = b.BookingId, // 添加這行
+                BookingId = b.BookingId,
                 UserId = b.UserId,
                 Price = b.Price,
+                BookingStatesId = b.BookingStatesId,
+                ActivityId = b.ActivityId,
                 ActivityName = b.Activity.Name,
                 ActivityDescription = b.Activity.Description
             }).ToList();

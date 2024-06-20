@@ -12,7 +12,7 @@ namespace LookDaysAPI.DataAccess
         private readonly LookdaysContext _context;
         public UserRepository(LookdaysContext context)
         {
-            this. _context = context;
+            this._context = context;
         }
 
         public async Task<string> AddNewUser(SignupDTO signup)
