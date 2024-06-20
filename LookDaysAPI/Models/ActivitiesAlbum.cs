@@ -16,6 +16,9 @@ public partial class ActivitiesAlbum
     [Column(TypeName = "image")]
     public byte[]? Photo { get; set; }
 
+    [Column(TypeName = "string")]
+    public string? PhotoDesc { get; set; }
+
     [Column("ActivityID")]
     public int ActivityId { get; set; }
 
