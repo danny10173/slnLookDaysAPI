@@ -118,6 +118,35 @@ namespace LookDaysAPI.Controllers
                 return BadRequest(ex);
             }
         }
+
+        [HttpGet("SearchByKeywords")]
+        public async Task<IActionResult> SearchByKeywords(string keywords)
+        {
+            try
+            {
+                if (_context.ForumPosts == null) return NotFound();
+                if(keywords !="")
+                {
+                    var findpost = from p in _context.ForumPosts.Where(a => a.PostTitle.Contains(keywords))
+                                   select new ForumPostDTO
+                                   {
+                                       PostTitle = p.PostTitle,
+                                       PostTime = p.PostTime,
+                                       Username = p.User.Username,
+                                       Participants = p.Participants
+                                   };
+                    return Ok(findpost);
+                }
+                else
+                {
+                    return Ok(_context.ForumPosts);
+                }
+            }
+            catch(Exception)
+            {
+                return BadRequest();
+            }
+        }
     }
 
 
