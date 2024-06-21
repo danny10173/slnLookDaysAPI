@@ -80,12 +80,15 @@ namespace LookDaysAPI.Controllers
         public async Task<ActionResult> GetFavorites(int userId)
         {
             var favorites = await _context.Bookings
+                .Include(a => a.Activity).ThenInclude(a => a.ActivitiesAlbums)
                 .Where(b => b.UserId == userId && b.BookingStatesId == 2)
                 .Select(b => new
                 {
                     ActivityId = b.ActivityId,
                     ActivityName = b.Activity.Name,
-                    Price = b.Price
+                    ActivityDescription = b.Activity.Description,  // 獲取活動描述
+                    Price = b.Price,
+                    photo = b.Activity.ActivitiesAlbums.Select(album => album.Photo != null ? Convert.ToBase64String(album.Photo) : null).ToList()
                 }).ToListAsync();
 
             if (!favorites.Any())
@@ -95,6 +98,7 @@ namespace LookDaysAPI.Controllers
 
             return Ok(favorites);
         }
+
         // GET: api/Favorites/{userId}/{activityId}
         [HttpGet("{userId}/{activityId}")]
         public async Task<ActionResult<Booking>> GetFavorite(int userId, int activityId)
