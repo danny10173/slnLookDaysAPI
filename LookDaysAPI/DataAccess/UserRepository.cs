@@ -18,7 +18,7 @@ namespace LookDaysAPI.DataAccess
         public async Task<string> AddNewUser(SignupDTO signup)
         {
             string validationRes = SignUpValidation(signup);
-            if (validationRes != string.Empty) { return "註冊資料格式錯誤"; }
+            if (validationRes != string.Empty) { return validationRes; }
             bool isUserExist = _context.Users.Any(m => m.Username == signup.Username);
             if (isUserExist) return ("使用者名稱已經被註冊");
             bool isEmailExist = _context.Users.Any(m => m.Email == signup.Email);
