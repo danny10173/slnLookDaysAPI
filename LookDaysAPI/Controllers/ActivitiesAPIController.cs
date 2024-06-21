@@ -76,7 +76,8 @@ namespace LookDaysAPI.Controllers
                     r.ReviewId,
                     username = r.User.Username,
                     r.Comment,
-                    r.Rating
+                    r.Rating,
+                    UserPic = r.User.UserPic != null ? Convert.ToBase64String(r.User.UserPic) : null
                 }).ToList(),
             };
 
