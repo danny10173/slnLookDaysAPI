@@ -21,8 +21,10 @@ public partial class Review
     [StringLength(500)]
     public string Comment { get; set; } = null!;
 
-    [StringLength(50)]
     public double? Rating { get; set; }
+
+    [Column(TypeName = "datetime")]
+    public DateTime? Date { get; set; }
 
     [ForeignKey("ActivityId")]
     [InverseProperty("Reviews")]

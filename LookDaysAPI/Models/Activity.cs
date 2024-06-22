@@ -16,7 +16,6 @@ public partial class Activity
     public string Name { get; set; } = null!;
 
     public string? Description { get; set; }
-    public string? Address { get; set; }
 
     [Column(TypeName = "money")]
     public decimal? Price { get; set; }
@@ -32,9 +31,16 @@ public partial class Activity
     [Column("HotelID")]
     public int? HotelId { get; set; }
 
+    [Column("latitude")]
     public double? Latitude { get; set; }
 
+    [Column("longitude")]
     public double? Longitude { get; set; }
+
+    [StringLength(50)]
+    public string? Address { get; set; }
+
+    public string? DescriptionJson { get; set; }
 
     [InverseProperty("Activity")]
     public virtual ICollection<ActionJoint> ActionJoints { get; set; } = new List<ActionJoint>();
@@ -47,6 +53,9 @@ public partial class Activity
 
     [InverseProperty("Activity")]
     public virtual ICollection<Booking> Bookings { get; set; } = new List<Booking>();
+
+    [InverseProperty("Activity")]
+    public virtual ICollection<BrowsingHistory> BrowsingHistories { get; set; } = new List<BrowsingHistory>();
 
     [ForeignKey("CityId")]
     [InverseProperty("Activities")]

@@ -29,6 +29,8 @@ public partial class LookdaysContext : DbContext
 
     public virtual DbSet<BookingState> BookingStates { get; set; }
 
+    public virtual DbSet<BrowsingHistory> BrowsingHistories { get; set; }
+
     public virtual DbSet<City> Cities { get; set; }
 
     public virtual DbSet<ClassJoint> ClassJoints { get; set; }
@@ -119,6 +121,13 @@ public partial class LookdaysContext : DbContext
                 .HasConstraintName("FK_Bookings_User");
         });
 
+        modelBuilder.Entity<BrowsingHistory>(entity =>
+        {
+            entity.HasOne(d => d.Activity).WithMany(p => p.BrowsingHistories).HasConstraintName("FK_BrowsingHistory_Activities");
+
+            entity.HasOne(d => d.User).WithMany(p => p.BrowsingHistories).HasConstraintName("FK_BrowsingHistory_User");
+        });
+
         modelBuilder.Entity<City>(entity =>
         {
             entity.HasKey(e => e.CityId).HasName("PK_Destinations");
@@ -139,11 +148,6 @@ public partial class LookdaysContext : DbContext
             entity.HasOne(d => d.Class).WithMany(p => p.ClassJoints)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_ClassJoint_ClassName");
-        });
-
-        modelBuilder.Entity<ClassName>(entity =>
-        {
-            entity.Property(e => e.ClassId).ValueGeneratedNever();
         });
 
         modelBuilder.Entity<CreditCardInfo>(entity =>
