@@ -46,4 +46,6 @@ public partial class Booking
     [ForeignKey("UserId")]
     [InverseProperty("Bookings")]
     public virtual User User { get; set; } = null!;
+
+    //public string? MerchantTradeNo { get; set; }
 }
