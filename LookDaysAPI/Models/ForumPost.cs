@@ -27,7 +27,7 @@ public partial class ForumPost
     [Unicode(false)]
     public string? PostContent { get; set; }
 
-    public int? Participants { get; set; }
+    public int Participants { get; set; }
 
     [ForeignKey("UserId")]
     [InverseProperty("ForumPosts")]

@@ -28,8 +28,11 @@ public partial class User
     [Column("RoleID")]
     public int RoleId { get; set; }
 
+    [Column(TypeName = "image")]
     public byte[]? UserPic { get; set; }
 
+    [Column("fPhone")]
+    [StringLength(50)]
     public string? fPhone { get; set; }
 
     [InverseProperty("User")]
@@ -37,6 +40,9 @@ public partial class User
 
     [InverseProperty("User")]
     public virtual ICollection<Booking> Bookings { get; set; } = new List<Booking>();
+
+    [InverseProperty("User")]
+    public virtual ICollection<BrowsingHistory> BrowsingHistories { get; set; } = new List<BrowsingHistory>();
 
     [InverseProperty("User")]
     public virtual ICollection<CreditCardInfo> CreditCardInfos { get; set; } = new List<CreditCardInfo>();
