@@ -18,6 +18,8 @@ namespace LookDaysAPI.Models.DTO
         [Column(TypeName = "datetime")]
         public DateTime? BrowseTime { get; set; }
 
-
+        [ForeignKey("ActivityId")]
+        [InverseProperty("BrowsingHistories")]
+        public virtual Activity? Activity { get; set; }
     }
 }

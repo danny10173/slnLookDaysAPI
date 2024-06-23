@@ -52,15 +52,29 @@ namespace LookDaysAPI.Controllers
                 {
                     return NotFound("使用者不存在");
                 }
-                var findHis = await _context.BrowsingHistories.Where(a => a.UserId == user.UserId)
-                    .Select(
-                    fh => new BrowsingHistoryDTO
-                    {
-                        BrowsingHistoryId = fh.BrowsingHistoryId,
-                        ActivityId = fh.ActivityId,
-                        BrowseTime = fh.BrowseTime
-                    }).Take(4).ToListAsync();
-                return Ok(findHis);
+                //var findHis = await _context.BrowsingHistories.Where(a => a.UserId == user.UserId)
+                //    .Select(
+                //    fh => new BrowsingHistoryDTO
+                //    {
+                //        BrowsingHistoryId = fh.BrowsingHistoryId,
+                //        ActivityId = fh.ActivityId,
+                //        BrowseTime = fh.BrowseTime
+                //    }).Take(4).ToListAsync();
+
+                var joinedBrowsingHistories = _context.BrowsingHistories
+                    .Include(a=>a.Activity)
+                    .ToList();
+
+                var selectedHistory = joinedBrowsingHistories.Where(a => a.UserId == user.UserId)
+                   .Select(a => new
+                   {
+                       a.ActivityId,
+                       a.Activity.Name,
+                       a.Activity.Price,
+                       a.BrowseTime,
+                       photo = a.Activity.ActivitiesAlbums.Select(album => album.Photo != null ? Convert.ToBase64String(album.Photo) : null).ToList()
+                   }).OrderByDescending(x=>x.BrowseTime).Take(4).ToList();
+                return Ok(selectedHistory);
             }
             catch (Exception)
             {
