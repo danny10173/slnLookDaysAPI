@@ -17,5 +17,7 @@ namespace LookDaysAPI.Models.DTO
 
         [Column(TypeName = "datetime")]
         public DateTime? BrowseTime { get; set; }
+
+
     }
 }

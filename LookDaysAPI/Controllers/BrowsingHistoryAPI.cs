@@ -56,9 +56,10 @@ namespace LookDaysAPI.Controllers
                     .Select(
                     fh => new BrowsingHistoryDTO
                     {
+                        BrowsingHistoryId = fh.BrowsingHistoryId,
                         ActivityId = fh.ActivityId,
                         BrowseTime = fh.BrowseTime
-                    }).ToListAsync();
+                    }).Take(4).ToListAsync();
                 return Ok(findHis);
             }
             catch (Exception)
