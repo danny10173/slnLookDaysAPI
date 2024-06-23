@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using LookDaysAPI.Models;
+using Newtonsoft.Json;
 
 namespace LookDaysAPI.Controllers
 {
@@ -38,8 +39,7 @@ namespace LookDaysAPI.Controllers
             var activity = await _context.Activities
                                         .Include(a => a.ActivitiesAlbums)
                                         .Include(a => a.Reviews)
-                                            .ThenInclude(a => a.User)
-     
+                                        .ThenInclude(a => a.User)
                                         .FirstOrDefaultAsync(a => a.ActivityId == id);
 
             if (activity == null)
@@ -47,11 +47,21 @@ namespace LookDaysAPI.Controllers
                 return NotFound();
             }
 
+            // 初始化描述項目列表
+            List<DescriptionItem> descriptionItems = null;
+
+            // 檢查並反序列化 JSON 描述
+            if (!string.IsNullOrEmpty(activity.DescriptionJson))
+            {
+                descriptionItems = JsonConvert.DeserializeObject<List<DescriptionItem>>(activity.DescriptionJson);
+            }
+
             var selectedActivity = new
             {
                 activity.ActivityId,
                 activity.Name,
                 activity.Description,
+                descriptionJson = descriptionItems, // 添加結構化描述，如果為 null 則不包含
                 activity.Price,
                 activity.Date,
                 activity.CityId,
@@ -60,20 +70,20 @@ namespace LookDaysAPI.Controllers
                 activity.Address,
 
                 photo = activity.ActivitiesAlbums.Select(album => album.Photo != null ? Convert.ToBase64String(album.Photo) : null).ToList(),
-                photoDesc = activity.ActivitiesAlbums
-                            .Select(album => album.PhotoDesc)
-                            .ToList(),
+                photoDesc = activity.ActivitiesAlbums.Select(album => album.PhotoDesc).ToList(),
                 reviews = activity.Reviews.Select(r => new
                 {
                     r.ReviewId,
                     username = r.User.Username,
                     r.Comment,
-                    r.Rating
+                    r.Rating,
+                    UserPic = r.User.UserPic != null ? Convert.ToBase64String(r.User.UserPic) : null
                 }).ToList(),
-
             };
+
             return Ok(selectedActivity);
         }
+
 
 
         // PUT: api/Activities/5

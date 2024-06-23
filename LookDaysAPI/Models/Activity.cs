@@ -70,4 +70,6 @@ public partial class Activity
 
     [InverseProperty("Activity")]
     public virtual ICollection<Review> Reviews { get; set; } = new List<Review>();
+
+    public string? DescriptionJson { get; set; } // JSON formatted descriptions
 }
