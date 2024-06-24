@@ -90,6 +90,7 @@ namespace LookDaysAPI.Controllers
                 // 驗證用戶及其雜湊密碼
                 User? user = await _userRepository.AuthHashUser(loginUser);
                 if (user == null) return BadRequest("使用者名稱或密碼錯誤");
+                if (user.RoleId == 9) return BadRequest("你被封鎖了");
 
                 // 如果用戶存在，生成 JWT
                 if (user != null)
