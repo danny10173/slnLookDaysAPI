@@ -69,6 +69,7 @@ namespace LookDaysAPI.Controllers
                 var selectedHistory = joinedBrowsingHistories.Where(a => a.UserId == user.UserId)
                    .Select(a => new
                    {
+                       a.BrowsingHistoryId, 
                        a.ActivityId,
                        a.Activity.Name,
                        a.Activity.Price,
