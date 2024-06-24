@@ -47,5 +47,5 @@ public partial class Booking
     [InverseProperty("Bookings")]
     public virtual User User { get; set; } = null!;
 
-    //public string? MerchantTradeNo { get; set; }
+    public string? MerchantTradeNo { get; set; }
 }
