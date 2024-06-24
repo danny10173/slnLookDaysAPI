@@ -63,6 +63,7 @@ namespace LookDaysAPI.Controllers
 
                 var joinedBrowsingHistories = _context.BrowsingHistories
                     .Include(a=>a.Activity)
+                    .ThenInclude(a=>a.ActivitiesAlbums)
                     .ToList();
 
                 var selectedHistory = joinedBrowsingHistories.Where(a => a.UserId == user.UserId)

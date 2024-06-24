@@ -7,6 +7,7 @@ using Microsoft.Extensions.FileProviders;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
+using ReactApp1.Server.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -72,6 +73,12 @@ builder.Services.AddAuthentication(options =>
 });
 builder.Services.AddSwaggerGen();
 builder.Services.AddHttpContextAccessor();
+
+// 註冊 ECPayService
+builder.Services.AddScoped<ECPayService>();
+
+// 添加 HttpClient 服務
+builder.Services.AddHttpClient();
 
 var app = builder.Build();
 

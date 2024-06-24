@@ -177,42 +177,5 @@ namespace LookDaysAPI.Controllers
             return id!;
         }
 
-        // 測試會員中心功能的 API 端點
-        [HttpGet("test-member-center")]
-        public async Task<IActionResult> TestMemberCenter(string token)
-        {
-            try
-            {
-                // 使用提供的 Token 來解碼並驗證用戶
-                string username = decodeJWT(token);
-
-                if (string.IsNullOrEmpty(username))
-                {
-                    return BadRequest("無效的 Token");
-                }
-
-                // 根據用戶名從資料庫中獲取用戶資訊
-                User? user = await _userRepository.GetUserbyUsername(username);
-
-                if (user == null)
-                {
-                    return NotFound("使用者不存在");
-                }
-
-                // 將用戶資訊轉換為 DTO 並返回
-                CurrentUserDTO currentUser = new CurrentUserDTO
-                {
-                    Id = user.UserId,
-                    Username = user.Username,
-                    Email = user.Email ?? string.Empty
-                };
-
-                return Ok(currentUser);
-            }
-            catch (Exception)
-            {
-                return BadRequest("伺服器錯誤，請稍後再試");
-            }
-        }
     }
 }
