@@ -120,7 +120,7 @@ public class HotActivitiesController : ControllerBase
                  .ToList()
              })
              .OrderByDescending(a => a.BookingCount) // 根據預訂次數排序
-             .Take(10) // 取前10個活動
+             .Take(20) // 取前10個活動
              .ToList();
 
 
