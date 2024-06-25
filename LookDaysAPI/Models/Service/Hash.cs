@@ -7,15 +7,15 @@ namespace LookDaysAPI.Models.Service
 {
     public class Hash
     {
-        //private static string SaltGenerator()
-        //{
-        //    byte[] RNDbytes = new byte[128 / 8];
-        //    using (var generator = RandomNumberGenerator.Create())
-        //    {
-        //        generator.GetBytes(RNDbytes);
-        //        return Convert.ToBase64String(RNDbytes);
-        //    }
-        //}
+        private static string SaltGenerator()
+        {
+            byte[] RNDbytes = new byte[128 / 8];
+            using (var generator = RandomNumberGenerator.Create())
+            {
+                generator.GetBytes(RNDbytes);
+                return Convert.ToBase64String(RNDbytes);
+            }
+        }
 
         private static string HashPassword(string value,string salt)
         {
@@ -30,7 +30,7 @@ namespace LookDaysAPI.Models.Service
 
         public static string HashPassword(string password)
         {
-            var salt = "namaste";
+            var salt = SaltGenerator();
             var hash = HashPassword(password, salt);
             var result = $"{salt}.{hash}";
             return result;
