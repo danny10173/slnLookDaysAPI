@@ -72,7 +72,7 @@ namespace LookDaysAPI.DataAccess
 
             if (foundUser != null)
             {
-                if (loginInfo.Password == foundUser.Password!)
+                if (Hash.VerifyHashedPassword(loginInfo.Password, foundUser.Password!))
                 {
                     return foundUser;
                 }
@@ -91,7 +91,7 @@ namespace LookDaysAPI.DataAccess
 
             if (foundUser != null)
             {
-                if (Hash.HashPassword(loginInfo.Password) == foundUser.Password!)
+                if (Hash.VerifyHashedPassword(loginInfo.Password, foundUser.Password!))
                 {
                     return foundUser;
                 }
