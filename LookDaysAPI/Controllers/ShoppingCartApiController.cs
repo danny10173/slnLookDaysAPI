@@ -20,25 +20,44 @@ namespace ReactApp1.Server.Controllers
 
         // 添加購物車項目
         [HttpPost]
-        public IActionResult AddShoppingCart(int? UserId, int? ActivityId)
+        public IActionResult AddShoppingCart(int? UserId, int? ActivityId, int? ModelId, int? Quantity)
         {
-            // 檢查UserId和ActivityId是否為空
+            // 檢查 UserId 和 ActivityId 是否為空
             if (UserId == null)
                 return BadRequest("請登入會員");
             if (ActivityId == null)
                 return BadRequest("DB沒此活動ID");
-
+            if (Quantity == null || Quantity <= 0)
+                return BadRequest("請選擇有效的人數");
             try
             {
-                // 查詢活動價格
-                var productPrices = (from r in _context.Activities
-                                     where r.ActivityId == ActivityId
-                                     select r.Price).FirstOrDefault();
+                decimal? productPrice = null;
 
-                // 如果沒有找到價格，返回未找到錯誤
-                if (productPrices == null)
+                if (ModelId != null)
                 {
-                    return NotFound("未找到商品價格");
+                    // 如果提供了 ModelId，查詢該 Model 的價格
+                    productPrice = (from r in _context.ActivitiesModels
+                                    where r.ActivityId == ActivityId && r.ModelId == ModelId
+                                    select r.ModelPrice).FirstOrDefault();
+
+                    // 如果沒有找到價格，返回未找到錯誤
+                    if (productPrice == null)
+                    {
+                        return NotFound("未找到商品價格或模式ID無效");
+                    }
+                }
+                else
+                {
+                    // 如果沒有提供 ModelId，查詢活動的價格
+                    productPrice = (from r in _context.Activities
+                                    where r.ActivityId == ActivityId
+                                    select r.Price).FirstOrDefault();
+
+                    // 如果沒有找到價格，返回未找到錯誤
+                    if (productPrice == null)
+                    {
+                        return NotFound("未找到商品價格");
+                    }
                 }
 
                 // 創建新的預訂記錄
@@ -46,10 +65,11 @@ namespace ReactApp1.Server.Controllers
                 {
                     UserId = (int)UserId,
                     ActivityId = (int)ActivityId,
+                    ModelId = ModelId, // 這裡可能為 null
                     BookingDate = DateTime.Now,
-                    Price = Convert.ToDecimal(productPrices),
+                    Price = Convert.ToDecimal(productPrice) * (int)Quantity,
                     BookingStatesId = 1, // 設置為購物車狀態
-                    Member = 1
+                    Member = (int)Quantity
                 };
 
                 // 將新預訂添加到數據庫並保存
@@ -60,7 +80,7 @@ namespace ReactApp1.Server.Controllers
             }
             catch (Exception ex)
             {
-                // 如果發生異常，返回內部服務器錯誤
+                // 如果發生異常，返回內部伺服器錯誤
                 return StatusCode(500, "內部伺服器錯誤");
             }
         }
@@ -71,32 +91,59 @@ namespace ReactApp1.Server.Controllers
         {
             // 查詢用戶購物車中的所有項目，並包括活動的名稱、日期和照片
             var cartItems = await _context.Bookings
+                                          // 過濾條件：匹配給定用戶ID且預訂狀態為1（購物車狀態）的記錄
                                           .Where(b => b.UserId == userID && b.BookingStatesId == 1)
+                                          // 選擇所需的字段來構建匿名對象
                                           .Select(b => new
                                           {
+                                              // 預訂ID
                                               b.BookingId,
+                                              // 用戶ID
                                               b.UserId,
+                                              // 活動ID
                                               b.ActivityId,
+                                              // 模式ID（可能為null）
+                                              b.ModelId,
+                                              // 預訂日期
                                               b.BookingDate,
+                                              // 價格
                                               b.Price,
+                                              // 預訂狀態ID
                                               b.BookingStatesId,
+                                              // 人數
                                               b.Member,
+                                              // 查詢活動詳細信息，包括名稱、日期和照片
                                               Activity = _context.Activities
                                                                 .Where(a => a.ActivityId == b.ActivityId)
                                                                 .Select(a => new
                                                                 {
+                                                                    // 活動名稱
                                                                     a.Name,
+                                                                    // 活動日期
                                                                     a.Date,
+                                                                    // 查詢活動的第一張照片
                                                                     Photo = _context.ActivitiesAlbums
                                                                                     .Where(al => al.ActivityId == a.ActivityId)
                                                                                     .Select(al => al.Photo)
                                                                                     .FirstOrDefault()
                                                                 })
-                                                                .FirstOrDefault()
+                                                                .FirstOrDefault(),
+                                              // 如果ModelId有值，查詢模型詳細信息
+                                              Model = b.ModelId.HasValue ? _context.ActivitiesModels
+                                                                           .Where(m => m.ActivityId == b.ActivityId && m.ModelId == b.ModelId)
+                                                                           .Select(m => new
+                                                                           {
+                                                                               // 模型名稱
+                                                                               m.ModelName,
+                                                                               // 模型價格
+                                                                               m.ModelPrice
+                                                                           })
+                                                                           .FirstOrDefault() : null
                                           })
-                                          .ToListAsync();
+                                          .ToListAsync(); // 將結果轉換為列表異步執行
 
-            return Ok(cartItems); // 返回購物車項目
+            // 返回購物車項目
+            return Ok(cartItems);
         }
 
         // 更新購物車中的行程數量
