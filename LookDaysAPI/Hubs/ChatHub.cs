@@ -1,10 +1,12 @@
-﻿using LookDaysAPI.DataService;
-using Microsoft.AspNetCore.SignalR;
+﻿using Microsoft.AspNetCore.SignalR;
+using LookDaysAPI.DataService;
 using ReactApp1.Server.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
+using LookDaysAPI.Models;
 
 namespace ReactApp1.Server.Hubs
 {
@@ -12,25 +14,28 @@ namespace ReactApp1.Server.Hubs
     {
         private static int chatRoomCounter = 1;
         private readonly SharedDb _shared;
+        private readonly LookdaysContext _context;
+        private readonly ILogger<ChatHub> _logger;
 
-        public ChatHub(SharedDb shared)
+        public ChatHub(SharedDb shared, LookdaysContext context, ILogger<ChatHub> logger)
         {
             _shared = shared;
+            _context = context;
+            _logger = logger;
         }
 
         public async Task JoinChat(UserConnection conn)
         {
             conn.ChatRoom = GenerateChatRoom();
             await Groups.AddToGroupAsync(Context.ConnectionId, conn.ChatRoom);
-
             _shared.connections[Context.ConnectionId] = conn;
-
-            await Clients.Group(conn.ChatRoom).SendAsync("ReceiveMessage", "客服", $"{conn.Username} has joined {conn.ChatRoom}");
+            _logger.LogInformation($"User {conn.Username} joined {conn.ChatRoom}");
+            await Clients.Group(conn.ChatRoom).SendAsync("ReceiveMessage", "customerservice", $"{conn.Username} has joined {conn.ChatRoom}");
         }
 
         public async Task JoinSpecificChatRoom(UserConnection conn)
         {
-            if (conn.ChatRoom == null || conn.ChatRoom == "")
+            if (string.IsNullOrEmpty(conn.ChatRoom))
             {
                 conn.ChatRoom = GenerateChatRoom();
             }
@@ -40,8 +45,8 @@ namespace ReactApp1.Server.Hubs
 
             var history = _shared.GetMessagesForChatRoom(conn.ChatRoom);
             await Clients.Caller.SendAsync("ReceiveChatHistory", history);
-
-            await Clients.Group(conn.ChatRoom).SendAsync("ReceiveMessage", "客服", $"{conn.Username} has joined {conn.ChatRoom}");
+            _logger.LogInformation($"User {conn.Username} joined specific chat room {conn.ChatRoom}");
+            await Clients.Group(conn.ChatRoom).SendAsync("ReceiveMessage", "customerservice", $"{conn.Username} has joined {conn.ChatRoom}");
         }
 
         public async Task LeaveSpecificChatRoom(UserConnection conn)
@@ -49,7 +54,8 @@ namespace ReactApp1.Server.Hubs
             if (_shared.connections.TryRemove(Context.ConnectionId, out _))
             {
                 await Groups.RemoveFromGroupAsync(Context.ConnectionId, conn.ChatRoom);
-                await Clients.Group(conn.ChatRoom).SendAsync("ReceiveMessage", "客服", $"{conn.Username} has left {conn.ChatRoom}");
+                _logger.LogInformation($"User {conn.Username} left {conn.ChatRoom}");
+                await Clients.Group(conn.ChatRoom).SendAsync("ReceiveMessage", "customerservice", $"{conn.Username} has left {conn.ChatRoom}");
             }
         }
 
@@ -62,34 +68,48 @@ namespace ReactApp1.Server.Hubs
             return Task.FromResult(activeRooms);
         }
 
-
         public async Task SendMessage(string msg)
         {
-            if (_shared.connections.TryGetValue(Context.ConnectionId, out UserConnection conn))
+            try
             {
-                var message = new Message
+                if (_shared.connections.TryGetValue(Context.ConnectionId, out UserConnection conn))
                 {
-                    Username = conn.Username,
-                    Content = msg,
-                    Timestamp = DateTime.Now
-                };
+                    var message = new ChatMessage
+                    {
+                        UserId = conn.UserId,
+                        Username = conn.Username,
+                        ChatRoom = conn.ChatRoom,
+                        ChatContent = msg,
+                        Timestamp = DateTime.Now
+                    };
 
-                _shared.AddMessageToChatHistory(conn.ChatRoom, message);
-                await Clients.Group(conn.ChatRoom).SendAsync("ReceiveSpecificMessage", conn.Username, msg);
+                    // 保存消息到数据库
+                    _context.ChatMessage.Add(message);
+                    await _context.SaveChangesAsync();
 
-                // 向所有客服發送新消息通知
-                await Clients.Group("CustomerService").SendAsync("NotifyNewMessage", conn.ChatRoom, message);
+                    // 发送消息到群组
+                    await Clients.Group(conn.ChatRoom).SendAsync("ReceiveSpecificMessage", conn.Username, msg);
+
+                    // 向所有客服发送新消息通知
+                    await Clients.Group("CustomerService").SendAsync("NotifyNewMessage", conn.ChatRoom, message);
+                }
+                else
+                {
+                    await Clients.Caller.SendAsync("ReceiveMessage", "customerservice", "Error: Connection not found.");
+                }
             }
-            else
+            catch (Exception ex)
             {
-                await Clients.Caller.SendAsync("ReceiveMessage", "客服", "Error: Connection not found.");
+                // 记录异常信息
+                _logger.LogError(ex, "Error sending message");
+                await Clients.Caller.SendAsync("ReceiveMessage", "customerservice", $"Error: {ex.Message}");
             }
         }
 
-        public async Task<List<Message>> GetChatHistory(string chatRoom)
+        public Task<List<Message>> GetChatHistory(string chatRoom)
         {
             var history = _shared.GetMessagesForChatRoom(chatRoom);
-            return await Task.FromResult(history);
+            return Task.FromResult(history);
         }
 
         private string GenerateChatRoom()
@@ -99,25 +119,21 @@ namespace ReactApp1.Server.Hubs
 
         public override async Task OnConnectedAsync()
         {
-            // 當客服連接時將其加入到客服組
             await Groups.AddToGroupAsync(Context.ConnectionId, "CustomerService");
             await base.OnConnectedAsync();
         }
 
         public override async Task OnDisconnectedAsync(Exception exception)
         {
-            // 當客服斷開連接時將其從客服組移除
             await Groups.RemoveFromGroupAsync(Context.ConnectionId, "CustomerService");
 
             if (_shared.connections.TryRemove(Context.ConnectionId, out UserConnection conn))
             {
                 await Groups.RemoveFromGroupAsync(Context.ConnectionId, conn.ChatRoom);
-                await Clients.Group(conn.ChatRoom).SendAsync("ReceiveMessage", "客服", $"{conn.Username} has left {conn.ChatRoom}");
+                await Clients.Group(conn.ChatRoom).SendAsync("ReceiveMessage", "customerservice", $"{conn.Username} has left {conn.ChatRoom}");
             }
 
             await base.OnDisconnectedAsync(exception);
         }
-
-
     }
 }

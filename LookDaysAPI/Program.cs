@@ -8,6 +8,7 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
 using ReactApp1.Server.Models;
+using ReactApp1.Server.Hubs;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -16,10 +17,12 @@ builder.Services.AddSignalR();
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowSpecificOrigin",
-        builder => builder.AllowAnyOrigin()
+        builder => builder.WithOrigins("http://localhost:5173") // 允许前端的来源
                           .AllowAnyHeader()
-                          .AllowAnyMethod());
+                          .AllowAnyMethod()
+                          .AllowCredentials());
 });
+
 
 // Add services to the container.
 
@@ -99,5 +102,8 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.MapForumPostEndpoints();
+
+app.MapHub<ChatHub>("/chat");
+
 
 app.Run();
