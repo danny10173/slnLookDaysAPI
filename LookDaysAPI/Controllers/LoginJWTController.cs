@@ -34,12 +34,20 @@ namespace LookDaysAPI.Controllers
                 // 使用 UserRepository 添加新用戶
                 string res = await _userRepository.AddNewUser(signup);
 
-                GMailer mailer = new GMailer();
-                mailer.ToEmail = signup.Email;
-                mailer.Subject = "Test Verify mail";
-                mailer.Body = $"Thanks for Registering your account.<br> please verify your email id by clicking the link <br> <a href=https://localhost:7148/api/UserVerify/GetVerify?username={signup.Username}>verify</a>";
-                mailer.IsHtml = true;
-                mailer.Send();
+                try
+                {
+                    GMailer mailer = new GMailer();
+                    mailer.ToEmail = signup.Email;
+                    mailer.Subject = "Test Verify mail";
+                    mailer.Body = $"Thanks for Registering your account.<br> please verify your email id by clicking the link <br> <a href=https://localhost:7148/api/UserVerify/GetVerify?username={signup.Username}>verify</a>";
+                    mailer.IsHtml = true;
+                    mailer.Send();
+                }
+                catch (Exception)
+                {
+                    return BadRequest("Please user real Email address");
+                }
+
 
                 // 根據結果返回不同的回應
                 if (res == "註冊成功，請收取信箱驗證信") return Ok(res);
@@ -103,7 +111,7 @@ namespace LookDaysAPI.Controllers
                 // 如果用戶存在，生成 JWT
                 if (user != null)
                 {
-                    var token = (new JwtGenerator(_configuration)).GenerateJwtToken(loginUser.Username, "user", user.UserId);
+                    var token = (new JwtGenerator(_configuration)).GenerateJwtToken(user.Username, "user", user.UserId);
                     var JWT = new JWT
                     {
                         token = "Bearer " + token
