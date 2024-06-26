@@ -27,7 +27,11 @@ namespace ReactApp1.Server.Models
         public string CreatePaymentRequest(List<Booking> bookings, decimal totalAmount)
         {
             int roundedTotalAmount = (int)Math.Round(totalAmount);
-            var itemNames = string.Join("#", bookings.Select(b => b.Activity.Name));
+            var itemNames = string.Join("#", bookings.Select(b =>
+            {
+                var modelName = b.ModelId != null ? b.Activity.ActivitiesModels.FirstOrDefault(m => m.ModelId == b.ModelId)?.ModelName : null;
+                return modelName != null ? $"{b.Activity.Name} - {modelName}" : b.Activity.Name;
+            }));
 
             var parameters = new Dictionary<string, string>
             {
@@ -47,7 +51,7 @@ namespace ReactApp1.Server.Models
 
 
             parameters["CheckMacValue"] = GenerateCheckMacValue(parameters);
-            
+
             var formBuilder = new StringBuilder();
             formBuilder.Append("<form id='ecpay_form' action='" + _paymentGatewayUrl + "' method='POST'>");
 
@@ -66,7 +70,7 @@ namespace ReactApp1.Server.Models
         {
             // 將參數字典按鍵名排序
             var orderedParams = parameters.OrderBy(p => p.Key);
-             Console.WriteLine(orderedParams);
+            Console.WriteLine(orderedParams);
 
             // 組合參數為查詢字符串
             var queryString = new StringBuilder();
