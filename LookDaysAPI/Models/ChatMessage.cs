@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using LookDaysAPI.Models;
+using System.ComponentModel.DataAnnotations;
 
 namespace ReactApp1.Server.Models
 {
@@ -12,5 +13,7 @@ namespace ReactApp1.Server.Models
         public string Username { get; set; }
         public string ChatContent { get; set; }
         public DateTime Timestamp { get; set; }
+
+        public User User { get; set; }
     }
 }

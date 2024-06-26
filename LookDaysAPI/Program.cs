@@ -9,6 +9,7 @@ using Microsoft.OpenApi.Models;
 using System.Text;
 using ReactApp1.Server.Models;
 using ReactApp1.Server.Hubs;
+using LookDaysAPI.DataService;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -25,6 +26,8 @@ builder.Services.AddCors(options =>
 
 
 // Add services to the container.
+
+builder.Services.AddSingleton<SharedDb>();
 
 builder.Services.AddControllers();
 builder.Services.AddDbContext<LookdaysContext>(
