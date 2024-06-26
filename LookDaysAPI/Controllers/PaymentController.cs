@@ -22,13 +22,16 @@ namespace ReactApp1.Server.Controllers
         [HttpPost("CreatePayment")]
         public async Task<IActionResult> CreatePayment([FromBody] BookingIdsRequest request)
         {
+
             if (request == null || request.BookingIds == null || !request.BookingIds.Any())
             {
                 return BadRequest("BookingIds field is required.");
             }
 
+
             var bookings = await _context.Bookings
                 .Include(b => b.Activity)
+                .ThenInclude(a => a.ActivitiesModels) // 加入這一行來包含 ActivityModels
                 .Where(b => request.BookingIds.Contains(b.BookingId))
                 .ToListAsync();
 
@@ -37,7 +40,14 @@ namespace ReactApp1.Server.Controllers
                 return NotFound();
             }
 
-            var totalAmount = bookings.Sum(b => b.Price * (b.Member ?? 1));
+
+            var totalAmount = bookings.Sum(b =>
+            {
+                var price = b.ModelId != null ? b.Activity.ActivitiesModels.FirstOrDefault(m => m.ModelId == b.ModelId)?.ModelPrice : b.Price;
+                var member = b.Member ?? 1;
+                return price.GetValueOrDefault(0) * member;
+            });
+
 
             foreach (var booking in bookings)
             {
@@ -105,6 +115,6 @@ namespace ReactApp1.Server.Controllers
             }
         }
 
-        
+
     }
 }
