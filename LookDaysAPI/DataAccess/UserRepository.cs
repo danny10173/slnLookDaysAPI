@@ -87,7 +87,7 @@ namespace LookDaysAPI.DataAccess
         {
             if (!SignInPropsValidation(loginInfo)) return null;
 
-            User? foundUser = await _context.Users.FirstOrDefaultAsync(m => m.Username == loginInfo.Username);
+            User? foundUser = await _context.Users.FirstOrDefaultAsync(m => m.Username == loginInfo.Username || m.Email == loginInfo.Username);
 
             if (foundUser != null)
             {
