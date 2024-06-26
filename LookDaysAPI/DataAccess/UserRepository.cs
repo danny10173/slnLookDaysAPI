@@ -31,13 +31,13 @@ namespace LookDaysAPI.DataAccess
                     Username = signup.Username,
                     Email = signup.Email,
                     Password = Hash.HashPassword(signup.Password),
-                    RoleId = 1
+                    RoleId = 8
                 };
 
                 _context.Users.Add(user);
                 await _context.SaveChangesAsync();
 
-                return "註冊成功";
+                return "註冊成功，請收取驗證信";
             }
             else
             {
@@ -87,7 +87,7 @@ namespace LookDaysAPI.DataAccess
         {
             if (!SignInPropsValidation(loginInfo)) return null;
 
-            User? foundUser = await _context.Users.FirstOrDefaultAsync(m => m.Username == loginInfo.Username);
+            User? foundUser = await _context.Users.FirstOrDefaultAsync(m => m.Username == loginInfo.Username || m.Email == loginInfo.Username);
 
             if (foundUser != null)
             {

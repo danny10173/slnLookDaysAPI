@@ -34,8 +34,15 @@ namespace LookDaysAPI.Controllers
                 // 使用 UserRepository 添加新用戶
                 string res = await _userRepository.AddNewUser(signup);
 
+                GMailer mailer = new GMailer();
+                mailer.ToEmail = signup.Email;
+                mailer.Subject = "Test Verify mail";
+                mailer.Body = $"Thanks for Registering your account.<br> please verify your email id by clicking the link <br> <a href=https://localhost:7148/api/UserVerify/GetVerify?username={signup.Username}>verify</a>";
+                mailer.IsHtml = true;
+                mailer.Send();
+
                 // 根據結果返回不同的回應
-                if (res == "註冊成功") return Ok(res);
+                if (res == "註冊成功，請收取信箱驗證信") return Ok(res);
                 else return BadRequest(res);
             }
             catch (Exception)
@@ -90,6 +97,7 @@ namespace LookDaysAPI.Controllers
                 // 驗證用戶及其雜湊密碼
                 User? user = await _userRepository.AuthHashUser(loginUser);
                 if (user == null) return BadRequest("使用者名稱或密碼錯誤");
+                if (user.RoleId == 8) return BadRequest("請驗證郵件");
                 if (user.RoleId == 9) return BadRequest("你被封鎖了");
 
                 // 如果用戶存在，生成 JWT
