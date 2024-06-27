@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using LookDaysAPI.Models;
+using LookDaysAPI.Models.DTO;
 
 namespace ReactApp1.Server.Hubs
 {
@@ -24,33 +25,47 @@ namespace ReactApp1.Server.Hubs
             _logger = logger;
         }
 
-        public async Task JoinChat(UserConnection conn)
+        public async Task JoinChat(UserConnectionDto connDto)
         {
-            if (conn.UserId == 0)
+            if (connDto.UserId == 0)
             {
-                // 如果 UserId 為 0 或未設置，這裡可以處理錯誤或給予默認值
                 await Clients.Caller.SendAsync("ReceiveMessage", "customerservice", "Error: UserId is required.");
                 return;
             }
 
-            conn.ChatRoom = GenerateChatRoom();
+            var conn = new UserConnection
+            {
+                ConnectionId = Context.ConnectionId,
+                UserId = connDto.UserId,
+                Username = connDto.Username,
+                ChatRoom = GenerateChatRoom()
+            };
+
             await Groups.AddToGroupAsync(Context.ConnectionId, conn.ChatRoom);
             _shared.connections[Context.ConnectionId] = conn;
+
             _logger.LogInformation($"User {conn.Username} joined {conn.ChatRoom}");
             await Clients.Group(conn.ChatRoom).SendAsync("ReceiveMessage", "customerservice", $"{conn.Username} has joined {conn.ChatRoom}");
         }
 
-
-        public async Task JoinSpecificChatRoom(UserConnection conn)
+        public async Task JoinSpecificChatRoom(UserConnectionDto connDto)
         {
-            _logger.LogInformation($"JoinSpecificChatRoom called with UserId: {conn.UserId}, Username: {conn.Username}");
+            _logger.LogInformation($"JoinSpecificChatRoom called with UserId: {connDto.UserId}, Username: {connDto.Username}");
 
-            if (conn.UserId == 0)
+            if (connDto.UserId == 0)
             {
                 await Clients.Caller.SendAsync("ReceiveMessage", "customerservice", "Error: UserId is required.");
                 _logger.LogWarning("UserId is required but was not provided.");
                 return;
             }
+
+            var conn = new UserConnection
+            {
+                ConnectionId = Context.ConnectionId,
+                UserId = connDto.UserId,
+                Username = connDto.Username,
+                ChatRoom = connDto.ChatRoom
+            };
 
             _logger.LogInformation($"Adding user {conn.Username} to chat room {conn.ChatRoom}");
             await Groups.AddToGroupAsync(Context.ConnectionId, conn.ChatRoom);
@@ -62,35 +77,29 @@ namespace ReactApp1.Server.Hubs
             await Clients.Group(conn.ChatRoom).SendAsync("ReceiveMessage", "customerservice", $"{conn.Username} has joined {conn.ChatRoom}");
         }
 
-
-
-
-
-
-
-
-
-        public async Task LeaveSpecificChatRoom(UserConnection conn)
+        public async Task LeaveSpecificChatRoom(UserConnectionDto connDto)
         {
             if (_shared.connections.TryRemove(Context.ConnectionId, out _))
             {
-                await Groups.RemoveFromGroupAsync(Context.ConnectionId, conn.ChatRoom);
-                _logger.LogInformation($"User {conn.Username} left {conn.ChatRoom}");
-                await Clients.Group(conn.ChatRoom).SendAsync("ReceiveMessage", "customerservice", $"{conn.Username} has left {conn.ChatRoom}");
+                await Groups.RemoveFromGroupAsync(Context.ConnectionId, connDto.ChatRoom);
+                _logger.LogInformation($"User {connDto.Username} left {connDto.ChatRoom}");
+                await Clients.Group(connDto.ChatRoom).SendAsync("ReceiveMessage", "customerservice", $"{connDto.Username} has left {connDto.ChatRoom}");
             }
         }
 
-        public Task<List<UserConnection>> GetActiveChatRooms()
+        public Task<List<UserConnectionDto>> GetActiveChatRooms()
         {
             var activeRooms = _shared.connections.Values
                 .GroupBy(c => c.ChatRoom)
-                .Select(g => new UserConnection { ChatRoom = g.Key, Username = g.First().Username })
+                .Select(g => new UserConnectionDto { ChatRoom = g.Key, Username = g.First().Username })
                 .ToList();
             return Task.FromResult(activeRooms);
         }
 
-        public async Task SendMessage(string msg)
+        public async Task SendMessage(ChatMessageDto msgDto)
         {
+            _logger.LogInformation("SendMessage called with ChatMessageDto: {@msgDto}", msgDto);
+
             try
             {
                 if (_shared.connections.TryGetValue(Context.ConnectionId, out UserConnection conn))
@@ -99,6 +108,7 @@ namespace ReactApp1.Server.Hubs
                     var user = await _context.Users.FindAsync(conn.UserId);
                     if (user == null)
                     {
+                        _logger.LogWarning("User not found for UserId: {UserId}", conn.UserId);
                         await Clients.Caller.SendAsync("ReceiveMessage", "customerservice", "Error: User not found.");
                         return;
                     }
@@ -108,7 +118,7 @@ namespace ReactApp1.Server.Hubs
                         UserId = conn.UserId,
                         Username = conn.Username,
                         ChatRoom = conn.ChatRoom,
-                        ChatContent = msg,
+                        ChatContent = msgDto.ChatContent,
                         Timestamp = DateTime.Now
                     };
 
@@ -120,18 +130,19 @@ namespace ReactApp1.Server.Hubs
                     _shared.AddMessageToChatHistory(conn.ChatRoom, new Message
                     {
                         Username = conn.Username,
-                        ChatContent = msg,
+                        ChatContent = msgDto.ChatContent,
                         Timestamp = DateTime.Now
                     });
 
                     // 发送消息到群组
-                    await Clients.Group(conn.ChatRoom).SendAsync("ReceiveSpecificMessage", conn.Username, msg);
+                    await Clients.Group(conn.ChatRoom).SendAsync("ReceiveSpecificMessage", conn.Username, msgDto.ChatContent);
 
                     // 向所有客服发送新消息通知
                     await Clients.Group("CustomerService").SendAsync("NotifyNewMessage", conn.ChatRoom, message);
                 }
                 else
                 {
+                    _logger.LogWarning("Connection not found for ConnectionId: {ConnectionId}", Context.ConnectionId);
                     await Clients.Caller.SendAsync("ReceiveMessage", "customerservice", "Error: Connection not found.");
                 }
             }
@@ -142,7 +153,6 @@ namespace ReactApp1.Server.Hubs
                 await Clients.Caller.SendAsync("ReceiveMessage", "customerservice", $"Error: {ex.Message}");
             }
         }
-
 
 
         public Task<List<Message>> GetChatHistory(string chatRoom)
