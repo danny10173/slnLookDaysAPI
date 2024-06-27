@@ -41,8 +41,8 @@ namespace LookDaysAPI.Controllers
         {
             GMailer mailer = new GMailer();
             mailer.ToEmail = "stanley05232930@gmail.com";
-            mailer.Subject = "Test Verify mail";
-            mailer.Body = "Thanks for Registering your account.<br> please verify your email id by clicking the link <br> <a href='youraccount.com/verifycode=12323232'>verify</a>";
+            mailer.Subject = "Lookdays Verify mail";
+            mailer.Body = "感謝你註冊和使用LookDays的服務.<br> 請點擊此連結來驗證你的帳號 <br> <a href='youraccount.com/verifycode=12323232'>verify</a>";
             mailer.IsHtml = true;
             mailer.Send();
 
